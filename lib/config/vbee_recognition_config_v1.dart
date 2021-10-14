@@ -8,11 +8,11 @@ class Config {
     // string session_id = 3;
     // int32 sample_rate_hertz = 4;
     // repeated SpeechContext speech_contexts = 5;
-    this.encoding,
-    this.sampleRateHertz,
-    this.maxAlternatives,
+    this.encoding = '',
+    this.sampleRateHertz = 16000,
+    this.maxAlternatives = '',
     this.speechContexts = const [],
-    this.sessionId,
+    this.sessionId = '',
   });
 
   _cs.Config toConfig() => (_cs.Config()
@@ -63,7 +63,7 @@ class RecognitionConfig {
 
   RecognitionConfig({
     this.model = 'Wav2vec2',
-    this.record = true,
+    this.record = false,
     this.partialResults = true,
     this.singleUtterance = true,
     this.interimResults = false,

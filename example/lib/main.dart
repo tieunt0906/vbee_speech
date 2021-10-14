@@ -66,10 +66,14 @@ class _AudioRecognizeState extends State<AudioRecognize> {
       print('data.final_2: ${data.isFinal} - text: ${data.text}');
       print(data);
       if (data.isFinal) {
-        stopRecording();
+        setState(() {
+          text = data.text;;
+          recognizeFinished = true;
+          stopRecording();
+        });
       } else {
         setState(() {
-          text = text + " " + data.text;
+          text = data.text;
           recognizeFinished = true;
         });
       }
@@ -89,7 +93,7 @@ class _AudioRecognizeState extends State<AudioRecognize> {
     });
   }
 
-  RecognitionConfig _getConfig() => RecognitionConfig(model: 'Wav2vec2', singleUtterance: false, config: _config());
+  RecognitionConfig _getConfig() => RecognitionConfig(model: 'Wav2vec2', singleUtterance: true, config: _config(), interimResults: true, record: true);
   Config _config() => Config(encoding: 'LINEAR16', sampleRateHertz: 16000);
 
   @override

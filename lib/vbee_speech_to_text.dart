@@ -18,16 +18,13 @@ class SpeechToText {
       options: const ChannelOptions(credentials: const ChannelCredentials.insecure()));
   SpeechToText._(this._options);
 
-  List<int> previousAudio = [];
-
   factory SpeechToText.viaServiceAccount(String deviceId) =>
-      SpeechToText._(CallOptions(metadata: {"device-id" : deviceId}));
+      SpeechToText._(CallOptions(metadata: {"device-id" : deviceId, "api-key" : "asr_sdk"}));
+  StreamSubscription<List<int>> _audioStreamSubscription;
 
   Future<RecognitionResponse> recognize(
       RecognitionConfig config, Stream<List<int>> audioStream) {
-    StreamSubscription<List<int>> _audioStreamSubscription;
     final client = SttServiceClient(_channel, options: _options);
-
     final request = StreamController<StreamingRecognitionRequest>();
 
     request
@@ -47,33 +44,20 @@ class SpeechToText {
       RecognitionConfig config, Stream<List<int>> audioStream) {
     final client = SttServiceClient(_channel, options: _options);
     final request = StreamController<StreamingRecognitionRequest>();
-    StreamSubscription<List<int>> _audioStreamSubscription;
 
     request
         .add(StreamingRecognitionRequest()..config = config.toConfig());
     _audioStreamSubscription = audioStream.listen((audio) {
-      previousAudio = new List.from(previousAudio)..addAll(audio);
+      request.add(StreamingRecognitionRequest()..audioContent = audio);
     });
-    Timer _timer = new Timer.periodic(
-      tick,
-          (Timer timer) {
-          if (previousAudio.length >= 320) {
-            request.add(StreamingRecognitionRequest()
-              ..audioContent = previousAudio.sublist(0, 320));
-            previousAudio.removeRange(0, 320);
-          }
-      },
-    );
+
     _audioStreamSubscription.onDone(() {
-      previousAudio = [];
-      _timer.cancel();
       request.close();
       _audioStreamSubscription.cancel();
     });
     return client.streamingRecognize(request.stream);
   }
-
   void dispose() {
-    previousAudio = [];
+    _audioStreamSubscription.cancel();
   }
 }
